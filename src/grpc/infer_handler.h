@@ -103,7 +103,7 @@ struct RequestReleasePayload final {
 // ResponseQueue
 //
 // This class implements a queue to manage responses that need to be written.
-// It also uses a reusable pool of persistent message objects to avoid
+// It internally uses a reusable pool of persistent message objects to avoid
 // allocating memory for each response individually.
 //
 template <typename ResponseType>
@@ -132,8 +132,6 @@ class ResponseQueue {
     ready_count_ = 0;
     pop_count_ = 0;
 
-    // Clear all responses and move them to the reusable pool
-    // Ideally after all responses written, responses_ will be empty
     while (!responses_.empty()) {
       responses_.front()->Clear();
       reusable_pool_.push_back(responses_.front());
@@ -159,7 +157,7 @@ class ResponseQueue {
     return responses_[0];
   }
 
-  // Allocates a new response at the end of the queue
+  // Allocates a response at the end of the queue
   void AllocateResponse()
   {
     std::lock_guard<std::mutex> lock(mtx_);
