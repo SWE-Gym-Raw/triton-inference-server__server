@@ -305,7 +305,7 @@ class TritonLLMEngine(LLMEngine):
         request_id: str,
         created: int,
         model: str,
-        response: tritonserver.InferenceResponse,
+        response: tritonserver.AsyncInferenceResponse,
     ) -> CreateChatCompletionStreamResponse:
         text = _get_output(response)
         choice = ChatCompletionStreamingResponseChoice(

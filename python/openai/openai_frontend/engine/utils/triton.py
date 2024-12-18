@@ -75,7 +75,7 @@ def _create_vllm_inference_request(
     # Pass sampling_parameters as serialized JSON string input to support List
     # fields like 'stop' that aren't supported by TRITONSERVER_Parameters yet.
     inputs["sampling_parameters"] = [sampling_parameters]
-    return model.create_request(inputs=inputs)
+    return model.create_async_request(inputs=inputs)
 
 
 def _create_trtllm_inference_request(
@@ -127,7 +127,9 @@ def _get_volume(shape: Iterable[int]) -> int:
     return volume
 
 
-def _to_string(tensor: tritonserver.Tensor) -> str:
+def _to_string(tensor: bytes) -> str:
+    return tensor[4:]
+
     # FIXME: This could be a bit more robust by reading byte size from first
     # 4 bytes and then just reading the first string, rather than assuming
     # single string, assuming it's of similar performance to do so.
@@ -149,7 +151,7 @@ def _to_string(tensor: tritonserver.Tensor) -> str:
 
 
 # TODO: Use tritonserver.InferenceResponse when support is published
-def _get_output(response: tritonserver._api._response.InferenceResponse) -> str:
+def _get_output(response: tritonserver._api._response.AsyncInferenceResponse) -> str:
     if "text_output" in response.outputs:
         tensor = response.outputs["text_output"]
 
@@ -164,7 +166,7 @@ def _get_output(response: tritonserver._api._response.InferenceResponse) -> str:
 
 
 def _validate_triton_responses_non_streaming(
-    responses: List[tritonserver._api._response.InferenceResponse],
+    responses: List[tritonserver._api._response.AsyncInferenceResponse],
 ):
     num_responses = len(responses)
     if num_responses == 1 and responses[0].final != True:
